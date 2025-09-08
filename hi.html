@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Message</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0b0b12">
+
+  <!-- Preload images to avoid flashing & ensure fast paint -->
+  <link rel="preload" href="MAA%20KALI.png" as="image" fetchpriority="high">
+  <link rel="preload" href="shankh.jpg" as="image">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      min-height: 100vh; /* fallback */
+      min-height: 100svh; /* stable viewport on mobile */
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #ffffff;
+      position: relative;
+      background: #0b0b12; /* solid fallback while image loads */
+      overflow-x: hidden;
+    }
+
+    /* Full-screen background using <img> to keep the full artwork visible */
+    .bg-img{
+      position: fixed; inset: 0; z-index: -1;
+      width: 100vw; height: 100vh; height: 100svh;
+      object-fit: contain;          /* show full image without cropping */
+      object-position: center;
+      pointer-events: none;
+      transform: translateZ(0);
+    }
+
+    /* Blurred cover layer fills edges while main image stays contain */
+    .bg-cover{
+      position: fixed; inset: 0; z-index: -2;
+      width: 100vw; height: 100vh; height: 100svh;
+      object-fit: cover;           /* fills screen */
+      object-position: center;
+      filter: blur(28px) brightness(.85) saturate(1.05);
+      transform: scale(1.08);      /* push blur outside edges */
+      pointer-events: none;
+    }
+
+    /* Soft vignette for readability on busy photos */
+    body::after{
+      content: "";
+      position: fixed; inset: 0; pointer-events: none;
+      background: radial-gradient(115% 80% at 50% 30%, transparent 0 55%, rgba(0,0,0,.42) 70%, rgba(0,0,0,.75) 100%);
+      z-index: -1;
+    }
+
+    .message-box, .ps-box {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      max-width: 680px;
+      width: min(680px, 92vw);
+      text-align: center;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255,255,255,.25);
+    }
+
+    .line { font-size: 1.5em; margin: 15px 0; opacity: 0; }
+
+    .ps-box { font-size: 1.1em; font-style: italic; opacity: 0; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* per-letter animation */
+    .ch{ opacity:0; display:inline-block; animation: charIn .4s ease forwards; }
+    .ch.sp{ width:.35em; }
+    @keyframes charIn { from{ opacity:0; transform: translateY(8px);} to{ opacity:1; transform: translateY(0);} }
+
+    @media (max-width: 600px) {
+      .message-box, .ps-box { padding: 20px 24px; font-size: 1em; margin-bottom: 20px; }
+      .line { font-size: 1.2em; margin: 10px 0; }
+      .ps-box { font-size: 1em; }
+    }
+
+    /* Popup */
+    #popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; background: rgba(0,0,0,0.6); z-index: 1000; }
+    #popup .box {
+      position: relative;
+      max-width: 520px;
+      width: 92%;
+      color: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.45);
+      box-shadow: 0 0 18px rgba(0,0,0,0.55);
+      background: rgba(0,0,0,.2);
+    }
+    #popup h3 { margin-bottom: 10px; font-size: 1.2em; text-shadow: 0 2px 6px rgba(0,0,0,.6) }
+    #popup p { font-size: 0.95em; margin-bottom: 20px; text-shadow: 0 2px 6px rgba(0,0,0,.6) }
+    #popup button { padding: 10px 15px; margin: 0 10px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    #denyBtn { background: rgba(255,255,255,.9); color: #222; }
+    #allowBtn { background: #0f172a; color: #fff; border:1px solid rgba(255,255,255,.4) }
+
+    /* Popup hero and body adjustments */
+    .popup-hero {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      overflow: hidden;
+    }
+    .popup-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url('shankh.jpg') center / cover no-repeat;
+      filter: blur(14px) brightness(.9) saturate(1.05);
+      transform: scale(1.08);
+    }
+    .popup-img {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .popup-body {
+      padding: 18px 18px 16px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background image elements (encodes the space in filename) -->
+  <img class="bg-cover" src="MAA%20KALI.png?v=1" alt="BG Fill" decoding="async" loading="eager" fetchpriority="high">
+  <img class="bg-img" src="MAA%20KALI.png?v=1" alt="Maa Kali Background" decoding="async" loading="eager" fetchpriority="high">
+
+  <div class="message-box" id="messageBox">
+    <div class="line">WAIT , A SEC</div>
+    <div class="line">HOW IS LIFE?</div>
+    <div class="line">YOU JUST ENDED A CHAPTER OF LIFE, BUT WHOLE  BOOK IS STILL THERE,</div>
+    <div class="line">WELL THINK IT LIKE INTRODUCTION OF</div>
+    <div class="line">A STORY BOOK, NOT THE FULL STORY,</div>
+    <div class="line">WRITE YOUR OWN STORY WITH OWN PERSPECTIVE</div>
+    <div class="line">DON'T WORRY EVERYTHING IS FINE......</div>
+  </div>
+
+  <div class="ps-box" id="psBox">
+    <p>PS: TUJHE BOLATHA SUNANAHI😤 HOGAYA KAND AB HUM🫠 KYA KARE RADHE RADHE🙏....</p>
+  </div>
+
+  <audio id="bg-music" loop muted playsinline style="display:none;">
+    <source src="SHANKHRADHE.mp3" type="audio/mpeg">
+    Your browser doesn't support audio playback.
+  </audio>
+
+  <div id="popup">
+    <div class="box">
+      <div class="popup-hero">
+        <img class="popup-img" src="shankh.jpg" alt="Shankh">
+      </div>
+      <div class="popup-body">
+        <h3>Here for you, and don't worry</h3>
+        <p>Do you want to play audio too?</p>
+        <div>
+          <button id="denyBtn">Deny</button>
+          <button id="allowBtn">Okay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const audio = document.getElementById('bg-music');
+    const popup = document.getElementById('popup');
+    const denyBtn = document.getElementById('denyBtn');
+    const allowBtn = document.getElementById('allowBtn');
+    const psBox = document.getElementById('psBox');
+
+    function startLetterAnimation(){
+      // Increase per-character delay for slower typing effect
+      const per = 0.07; // seconds per character
+      let base = 0;     // rolling delay across lines
+
+      const letterize = (el, baseDelay) => {
+        const rawChars = Array.from(el.textContent); // emoji-safe split (handles emojis)
+        el.textContent = '';
+        let delay = baseDelay;
+        for (const ch of rawChars){
+          const span = document.createElement('span');
+          span.className = 'ch' + (ch === ' ' ? ' sp' : '');
+          if (ch === ' ') {
+            span.innerHTML = '&nbsp;';
+          } else {
+            span.textContent = ch;
+          }
+          // set individual character's animation delay
+          span.style.animationDelay = delay + 's';
+          el.appendChild(span);
+          delay += per;
+        }
+        // ensure the element becomes visible despite default opacity/transform
+        el.style.visibility = 'visible';
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+        return delay - baseDelay;
+      };
+
+      // animate each .line sequentially
+      document.querySelectorAll('.line').forEach((line) => {
+        const added = letterize(line, base);
+        // Increase gap between lines to slow down animation further
+        base += added + 0.5; // gap between lines
+      });
+      // animate PS paragraph at the end
+      const psP = document.querySelector('#psBox p');
+      if (psP) {
+        // ensure ps box container is visible too
+        psBox.style.visibility = 'visible';
+        psBox.style.opacity = '1';
+        psBox.style.transform = 'none';
+        letterize(psP, base);
+      }
+    }
+
+    function handlePopupClosed() {
+      startLetterAnimation();
+      popup.style.display = 'none';
+    }
+
+    function startMusicOnInteraction() {
+      audio.muted = false;
+      audio.play().catch(err => console.log('Audio error:', err));
+      window.removeEventListener('click', startMusicOnInteraction);
+      window.removeEventListener('touchstart', startMusicOnInteraction);
+    }
+
+    // Buttons
+    denyBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      handlePopupClosed();
+      audio.pause();
+      audio.muted = true;
+      window.removeEventListener('click', startMusicOnInteraction);
+      window.removeEventListener('touchstart', startMusicOnInteraction);
+    });
+
+    allowBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      handlePopupClosed();
+      audio.muted = false;
+      audio.play().catch(err => console.log('Audio error:', err));
+      window.removeEventListener('click', startMusicOnInteraction);
+      window.removeEventListener('touchstart', startMusicOnInteraction);
+    });
+
+    // Always show popup first on ALL devices so audio + text start in sync
+    document.addEventListener('DOMContentLoaded', () => {
+      const lines = document.querySelectorAll('.line');
+      popup.style.display = 'flex';
+      // hide message lines and psBox until the popup is closed and animation starts
+      lines.forEach(line => {
+        line.style.visibility = 'hidden';
+      });
+      psBox.style.visibility = 'hidden';
+    });
+
+    // Fallback: unlock audio on first interaction anywhere (if user didn't press the buttons)
+    window.addEventListener('click', startMusicOnInteraction, { once: true });
+    window.addEventListener('touchstart', startMusicOnInteraction, { once: true });
+  </script>
+
+  <noscript>
+    <style> .line, .ps-box { opacity:1 !important; transform:none !important } </style>
+  </noscript>
+</body>
+</html>
