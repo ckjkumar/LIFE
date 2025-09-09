@@ -19,10 +19,8 @@
       --line-fs: clamp(16px, 3.8vw, 24px);
       --ps-fs: clamp(14px, 3.2vw, 18px);
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; }
-
     body {
       min-height: calc(var(--vh) * 100);
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -36,7 +34,6 @@
       overflow-y: auto;
       gap: clamp(16px, 3vmin, 24px);
     }
-
     .bg-img, .bg-cover {
       position: fixed; inset: 0;
       width: 100vw; height: calc(var(--vh) * 100);
@@ -60,9 +57,7 @@
       pointer-events: none;
       background: radial-gradient(115% 80% at 50% 30%, transparent 0 55%, rgba(0,0,0,.42) 70%, rgba(0,0,0,.75) 100%);
     }
-
     .stack { width: 100%; display: grid; justify-items: center; gap: clamp(16px, 3vmin, 24px); }
-
     .box {
       background: rgba(255, 255, 255, 0.18);
       -webkit-backdrop-filter: blur(var(--blur));
@@ -74,7 +69,6 @@
       text-align: center;
       border: 1px solid rgba(255,255,255,.25);
     }
-
     .line, .ps-box p {
       margin: 10px 0;
       opacity: 0;
@@ -90,19 +84,16 @@
     .line { font-size: var(--line-fs); }
     .ps-box p { font-size: var(--ps-fs); }
     .ps-box { font-style: italic; opacity: 0; visibility: hidden; }
-
     .ch { opacity:0; display:inline-block; animation: charIn .4s ease forwards; }
     .ch.sp { width:.35em; }
     @keyframes charIn {
       from { opacity:0; transform: translateY(8px); }
       to { opacity:1; transform: translateY(0); }
     }
-
     @media (prefers-reduced-motion: reduce) {
       .ch { animation: none !important; opacity: 1 !important; }
       .line, .ps-box { opacity: 1 !important; visibility: visible !important; }
     }
-
     #popup {
       position: fixed; inset: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       display: none;
@@ -129,7 +120,6 @@
     #popup button { padding: 10px 16px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
     #denyBtn { background: rgba(255,255,255,.9); color: #222; }
     #allowBtn { background: #0f172a; color: #fff; border:1px solid rgba(255,255,255,.4); }
-
     .popup-hero { position: relative; width: 100%; aspect-ratio: 3 / 2; overflow: hidden; }
     .popup-hero::before {
       content: "";
@@ -145,7 +135,6 @@
 <body>
   <img class="bg-cover" src="MAA%20KALI.png?v=1" alt="BG Fill" decoding="async" loading="eager" fetchpriority="high" />
   <img class="bg-img" src="MAA%20KALI.png?v=1" alt="Maa Kali Background" decoding="async" loading="eager" fetchpriority="high" />
-
   <div class="stack">
     <div class="box" id="messageBox">
       <div class="line">WAIT , A SEC</div>
@@ -161,17 +150,14 @@
       <div class="line">WITH OWN PERSPECTIVE</div>
       <div class="line">DON'T WORRY EVERYTHING IS FINE......</div>
     </div>
-
     <div class="box ps-box" id="psBox">
       <p>PS: TUJHE BOLATHA SUN NAHI🙂 HOGAYA KAND AB HUM🫠 KYA KARE RADHE RADHE🙏....</p>
     </div>
   </div>
-
-  <audio id="bg-music" loop muted playsinline style="display:none;">
+  <audio id="bg-music" loop muted playsinline preload="auto" style="display:none;">
     <source src="SHANKHRADHE.mp3" type="audio/mpeg" />
     Your browser doesn't support audio playback.
   </audio>
-
   <div id="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle" aria-describedby="popupDesc">
     <div class="box">
       <div class="popup-hero">
@@ -187,7 +173,6 @@
       </div>
     </div>
   </div>
-
   <script>
     const audio = document.getElementById('bg-music');
     const popup = document.getElementById('popup');
@@ -195,7 +180,6 @@
     const allowBtn = document.getElementById('allowBtn');
     const psBox = document.getElementById('psBox');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     function setVH() {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -203,7 +187,19 @@
     setVH();
     window.addEventListener('resize', setVH);
     window.addEventListener('orientationchange', setVH);
-
+    function safeCanAutoplayNow() {
+      return (navigator.userActivation && navigator.userActivation.hasBeenActive) || document.hasFocus();
+    }
+    async function tryPlay() {
+      try {
+        audio.muted = false;
+        if (audio.readyState < 2) { audio.load(); }
+        await audio.play();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
     function startLetterAnimation(){
       if (reduceMotion) {
         document.querySelectorAll('.line').forEach((line) => {
@@ -245,68 +241,89 @@
         letterize(psP, base);
       }
     }
-
-    function handlePopupClosed() {
+    function closePopupAndAnimate() {
       startLetterAnimation();
       popup.style.display = 'none';
       popup.setAttribute('aria-hidden', 'true');
       document.body.removeAttribute('aria-hidden');
     }
-
-    function startMusicOnInteraction() {
-      audio.muted = false;
-      audio.play().catch(()=>{});
-      window.removeEventListener('click', startMusicOnInteraction);
-      window.removeEventListener('touchstart', startMusicOnInteraction);
+    async function gestureStart() {
+      const consent = localStorage.getItem('audioConsent');
+      if (consent === 'allow') {
+        const ok = await tryPlay();
+        if (ok) detachGestureListeners();
+      } else {
+        if (popup.style.display !== 'flex') {
+          popup.style.display = 'flex';
+          document.body.setAttribute('aria-hidden', 'true');
+        }
+      }
     }
-
+    function attachGestureListeners() {
+      document.addEventListener('pointerdown', gestureStart, { passive: true });
+      document.addEventListener('touchstart', gestureStart, { passive: true });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') gestureStart();
+      });
+    }
+    function detachGestureListeners() {
+      document.removeEventListener('pointerdown', gestureStart, { passive: true });
+      document.removeEventListener('touchstart', gestureStart, { passive: true });
+    }
     denyBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       localStorage.setItem('audioConsent', 'deny');
-      handlePopupClosed();
+      closePopupAndAnimate();
       audio.pause();
       audio.muted = true;
     });
-
-    allowBtn.addEventListener('click', (event) => {
+    allowBtn.addEventListener('click', async (event) => {
       event.stopPropagation();
       localStorage.setItem('audioConsent', 'allow');
-      handlePopupClosed();
-      audio.muted = false;
-      audio.play().catch(()=>{});
+      closePopupAndAnimate();
+      await tryPlay();
+      detachGestureListeners();
     });
-
-    document.addEventListener('keydown', (e) => {
-      if (popup.style.display === 'flex') {
-        if (e.key === 'Escape') denyBtn.click();
-        else if (e.key === 'Enter') allowBtn.click();
+    window.addEventListener('pageshow', async () => {
+      const consent = localStorage.getItem('audioConsent');
+      if (consent === 'allow') {
+        if (safeCanAutoplayNow()) {
+          const ok = await tryPlay();
+          if (ok) detachGestureListeners();
+        } else {
+          attachGestureListeners();
+        }
       }
     });
-
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible') {
+        const consent = localStorage.getItem('audioConsent');
+        if (consent === 'allow' && safeCanAutoplayNow()) {
+          const ok = await tryPlay();
+          if (ok) detachGestureListeners();
+        }
+      }
+    });
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.line').forEach(line => { line.style.visibility = 'hidden'; });
       psBox.style.visibility = 'hidden';
       const saved = localStorage.getItem('audioConsent');
       if (saved === 'allow') {
         popup.style.display = 'none';
-        startLetterAnimation();
-        audio.muted = false;
-        audio.play().catch(()=>{});
+        closePopupAndAnimate();
+        attachGestureListeners();
       } else if (saved === 'deny') {
         popup.style.display = 'none';
-        startLetterAnimation();
+        closePopupAndAnimate();
         audio.pause();
         audio.muted = true;
       } else {
         popup.style.display = 'flex';
         document.body.setAttribute('aria-hidden', 'true');
+        attachGestureListeners();
       }
     });
-
-    window.addEventListener('click', startMusicOnInteraction, { once: true });
-    window.addEventListener('touchstart', startMusicOnInteraction, { once: true });
   </script>
-
   <noscript>
     <style> .line, .ps-box { opacity:1 !important; visibility:visible !important; transform:none !important } </style>
   </noscript>
