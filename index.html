@@ -4,17 +4,14 @@
   <meta charset="UTF-8">
   <title>Message</title>
 
-  <!-- Device-friendly viewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0b0b12">
 
-  <!-- Preload images to avoid flashing & ensure fast paint -->
   <link rel="preload" href="MAA%20KALI.png" as="image" fetchpriority="high">
   <link rel="preload" href="shankh.jpg" as="image">
 
   <style>
-    /* Reset and global styles */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; }
 
@@ -33,7 +30,6 @@
       overflow-x: hidden;
     }
 
-    /* Background images */
     .bg-img{
       position: fixed; inset: 0; z-index: -1;
       width: 100vw; height: 100vh; height: 100svh;
@@ -53,7 +49,6 @@
       pointer-events: none;
     }
 
-    /* Soft vignette for readability */
     body::after{
       content: "";
       position: fixed; inset: 0; pointer-events: none;
@@ -61,7 +56,6 @@
       z-index: -1;
     }
 
-    /* Shared styling for boxes */
     .message-box, .ps-box {
       background: rgba(255, 255, 255, 0.18);
       backdrop-filter: blur(10px);
@@ -76,34 +70,24 @@
       border: 1px solid rgba(255,255,255,.25);
     }
 
-    /* Individual lines with word-break fixes */
-    .line {
+    .line, .ps-box p {
       font-size: 1.5em;
       margin: 15px 0;
       opacity: 0;
-      overflow-wrap: break-word; /* break only if necessary */
-      word-break: normal;
+      white-space: normal;        /* allow wrapping only at spaces */
+      word-break: keep-all;       /* never break inside words */
+      overflow-wrap: normal;
       -webkit-hyphens: none;
       -ms-hyphens: none;
       hyphens: none;
     }
 
-    /* PS box styling */
     .ps-box {
       font-size: 1.1em;
       font-style: italic;
       opacity: 0;
     }
-    /* Prevent mid-word breaks in PS text */
-    .ps-box p {
-      overflow-wrap: break-word;
-      word-break: normal;
-      -webkit-hyphens: none;
-      -ms-hyphens: none;
-      hyphens: none;
-    }
 
-    /* Character animations */
     .ch{ opacity:0; display:inline-block; animation: charIn .4s ease forwards; }
     .ch.sp{ width:.35em; }
     @keyframes charIn { from{ opacity:0; transform: translateY(8px);} to{ opacity:1; transform: translateY(0);} }
@@ -114,10 +98,8 @@
       .ps-box { font-size: 1em; }
     }
 
-    /* Popup styling */
     #popup {
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
       display: none;
       justify-content: center;
@@ -142,40 +124,22 @@
     #denyBtn { background: rgba(255,255,255,.9); color: #222; }
     #allowBtn { background: #0f172a; color: #fff; border:1px solid rgba(255,255,255,.4) }
 
-    /* Popup hero image and blur */
-    .popup-hero {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 3 / 2;
-      overflow: hidden;
-    }
+    .popup-hero { position: relative; width: 100%; aspect-ratio: 3 / 2; overflow: hidden; }
     .popup-hero::before {
       content: "";
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       background: url('shankh.jpg') center / cover no-repeat;
       filter: blur(14px) brightness(.9) saturate(1.05);
       transform: scale(1.08);
     }
-    .popup-img {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-    .popup-body {
-      padding: 18px 18px 16px;
-      text-align: center;
-    }
+    .popup-img { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; }
+    .popup-body { padding: 18px 18px 16px; text-align: center; }
   </style>
 </head>
 <body>
-  <!-- Background layers -->
   <img class="bg-cover" src="MAA%20KALI.png?v=1" alt="BG Fill" decoding="async" loading="eager" fetchpriority="high">
   <img class="bg-img" src="MAA%20KALI.png?v=1" alt="Maa Kali Background" decoding="async" loading="eager" fetchpriority="high">
 
-  <!-- Message lines -->
   <div class="message-box" id="messageBox">
     <div class="line">WAIT , A SEC</div>
     <div class="line">HOW IS LIFE?</div>
@@ -186,18 +150,15 @@
     <div class="line">DON'T WORRY EVERYTHING IS FINE......</div>
   </div>
 
-  <!-- PS section -->
   <div class="ps-box" id="psBox">
     <p>PS: TUJHE BOLATHA SUNANAHI😤 HOGAYA KAND AB HUM🫠 KYA KARE RADHE RADHE🙏....</p>
   </div>
 
-  <!-- Background music -->
   <audio id="bg-music" loop muted playsinline style="display:none;">
     <source src="SHANKHRADHE.mp3" type="audio/mpeg">
     Your browser doesn't support audio playback.
   </audio>
 
-  <!-- Popup asking for audio -->
   <div id="popup">
     <div class="box">
       <div class="popup-hero">
@@ -221,7 +182,6 @@
     const allowBtn = document.getElementById('allowBtn');
     const psBox = document.getElementById('psBox');
 
-    // Create letter-by-letter animation
     function startLetterAnimation(){
       const per = 0.07;
       let base = 0;
@@ -233,11 +193,7 @@
         for (const ch of rawChars){
           const span = document.createElement('span');
           span.className = 'ch' + (ch === ' ' ? ' sp' : '');
-          if (ch === ' ') {
-            span.innerHTML = '&nbsp;';
-          } else {
-            span.textContent = ch;
-          }
+          span.innerHTML = (ch === ' ') ? '&nbsp;' : ch;
           span.style.animationDelay = delay + 's';
           el.appendChild(span);
           delay += per;
@@ -274,14 +230,11 @@
       window.removeEventListener('touchstart', startMusicOnInteraction);
     }
 
-    // Button event handlers
     denyBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       handlePopupClosed();
       audio.pause();
       audio.muted = true;
-      window.removeEventListener('click', startMusicOnInteraction);
-      window.removeEventListener('touchstart', startMusicOnInteraction);
     });
 
     allowBtn.addEventListener('click', (event) => {
@@ -289,11 +242,8 @@
       handlePopupClosed();
       audio.muted = false;
       audio.play().catch(err => console.log('Audio error:', err));
-      window.removeEventListener('click', startMusicOnInteraction);
-      window.removeEventListener('touchstart', startMusicOnInteraction);
     });
 
-    // Show popup and hide text until user decides
     document.addEventListener('DOMContentLoaded', () => {
       popup.style.display = 'flex';
       document.querySelectorAll('.line').forEach(line => {
@@ -302,7 +252,6 @@
       psBox.style.visibility = 'hidden';
     });
 
-    // Fallback: unlock audio on first interaction anywhere
     window.addEventListener('click', startMusicOnInteraction, { once: true });
     window.addEventListener('touchstart', startMusicOnInteraction, { once: true });
   </script>
