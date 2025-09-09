@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Message</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0b0b12">
@@ -30,39 +29,39 @@
       overflow-x: hidden;
     }
 
-    .bg-img{
-      position: fixed; inset: 0; z-index: -1;
+    /* Background layers */
+    .bg-img, .bg-cover {
+      position: fixed; inset: 0;
       width: 100vw; height: 100vh; height: 100svh;
+      pointer-events: none;
+    }
+    .bg-img {
+      z-index: -1;
       object-fit: contain;
       object-position: center;
-      pointer-events: none;
-      transform: translateZ(0);
     }
-
-    .bg-cover{
-      position: fixed; inset: 0; z-index: -2;
-      width: 100vw; height: 100vh; height: 100svh;
+    .bg-cover {
+      z-index: -2;
       object-fit: cover;
       object-position: center;
       filter: blur(28px) brightness(.85) saturate(1.05);
       transform: scale(1.08);
-      pointer-events: none;
     }
-
-    body::after{
+    body::after {
       content: "";
-      position: fixed; inset: 0; pointer-events: none;
+      position: fixed; inset: 0; z-index: -1;
+      pointer-events: none;
       background: radial-gradient(115% 80% at 50% 30%, transparent 0 55%, rgba(0,0,0,.42) 70%, rgba(0,0,0,.75) 100%);
-      z-index: -1;
     }
 
+    /* Message styling */
     .message-box, .ps-box {
       background: rgba(255, 255, 255, 0.18);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       padding: 30px 40px;
       border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
       max-width: 680px;
       width: min(680px, 92vw);
       text-align: center;
@@ -74,9 +73,9 @@
       font-size: 1.5em;
       margin: 15px 0;
       opacity: 0;
-      white-space: normal;        /* allow wrapping only at spaces */
-      word-break: keep-all;       /* never break inside words */
-      overflow-wrap: normal;
+      white-space: normal;
+      word-break: keep-all;     /* no mid-word breaks */
+      overflow-wrap: normal;    /* wrap only at spaces */
       -webkit-hyphens: none;
       -ms-hyphens: none;
       hyphens: none;
@@ -88,19 +87,24 @@
       opacity: 0;
     }
 
-    .ch{ opacity:0; display:inline-block; animation: charIn .4s ease forwards; }
-    .ch.sp{ width:.35em; }
-    @keyframes charIn { from{ opacity:0; transform: translateY(8px);} to{ opacity:1; transform: translateY(0);} }
+    /* Character animations */
+    .ch { opacity:0; display:inline-block; animation: charIn .4s ease forwards; }
+    .ch.sp { width:.35em; }
+    @keyframes charIn {
+      from { opacity:0; transform: translateY(8px); }
+      to { opacity:1; transform: translateY(0); }
+    }
 
+    /* Responsive */
     @media (max-width: 600px) {
-      .message-box, .ps-box { padding: 20px 24px; font-size: 1em; margin-bottom: 20px; }
+      .message-box, .ps-box { padding: 20px 24px; }
       .line { font-size: 1.2em; margin: 10px 0; }
       .ps-box { font-size: 1em; }
     }
 
+    /* Popup */
     #popup {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
+      position: fixed; inset: 0;
       display: none;
       justify-content: center;
       align-items: center;
@@ -118,11 +122,11 @@
       box-shadow: 0 0 18px rgba(0,0,0,0.55);
       background: rgba(0,0,0,.2);
     }
-    #popup h3 { margin-bottom: 10px; font-size: 1.2em; text-shadow: 0 2px 6px rgba(0,0,0,.6) }
-    #popup p { font-size: 0.95em; margin-bottom: 20px; text-shadow: 0 2px 6px rgba(0,0,0,.6) }
+    #popup h3 { margin-bottom: 10px; font-size: 1.2em; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+    #popup p { font-size: 0.95em; margin-bottom: 20px; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
     #popup button { padding: 10px 15px; margin: 0 10px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
     #denyBtn { background: rgba(255,255,255,.9); color: #222; }
-    #allowBtn { background: #0f172a; color: #fff; border:1px solid rgba(255,255,255,.4) }
+    #allowBtn { background: #0f172a; color: #fff; border:1px solid rgba(255,255,255,.4); }
 
     .popup-hero { position: relative; width: 100%; aspect-ratio: 3 / 2; overflow: hidden; }
     .popup-hero::before {
@@ -137,28 +141,34 @@
   </style>
 </head>
 <body>
+  <!-- Backgrounds -->
   <img class="bg-cover" src="MAA%20KALI.png?v=1" alt="BG Fill" decoding="async" loading="eager" fetchpriority="high">
   <img class="bg-img" src="MAA%20KALI.png?v=1" alt="Maa Kali Background" decoding="async" loading="eager" fetchpriority="high">
 
+  <!-- Main message -->
   <div class="message-box" id="messageBox">
     <div class="line">WAIT , A SEC</div>
     <div class="line">HOW IS LIFE?</div>
     <div class="line">YOU JUST ENDED A CHAPTER OF LIFE, BUT WHOLE BOOK IS STILL THERE,</div>
-    <div class="line">WELL THINK IT LIKE INTRODUCTION OF</div>
-    <div class="line">A STORY BOOK, NOT THE FULL STORY,</div>
+    <div class="line">WELL THINK IT LIKE</div>
+    <div class="line">INTRODUCTION OF A STORY BOOK</div>
+    <div class="line">NOT THE FULL STORY,</div>
     <div class="line">WRITE YOUR OWN STORY WITH OWN PERSPECTIVE</div>
     <div class="line">DON'T WORRY EVERYTHING IS FINE......</div>
   </div>
 
+  <!-- PS -->
   <div class="ps-box" id="psBox">
     <p>PS: TUJHE BOLATHA SUNANAHI😤 HOGAYA KAND AB HUM🫠 KYA KARE RADHE RADHE🙏....</p>
   </div>
 
+  <!-- Audio -->
   <audio id="bg-music" loop muted playsinline style="display:none;">
     <source src="SHANKHRADHE.mp3" type="audio/mpeg">
     Your browser doesn't support audio playback.
   </audio>
 
+  <!-- Popup -->
   <div id="popup">
     <div class="box">
       <div class="popup-hero">
